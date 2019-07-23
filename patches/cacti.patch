@@ -1,0 +1,42 @@
+From 65f7b62f7aaf60670d2419b6bf1472762f44d70a Mon Sep 17 00:00:00 2001
+From: Scott Davidson <scottdavidson1992@gmail.com>
+Date: Tue, 23 Jul 2019 20:14:50 -0700
+Subject: [PATCH] Output csv data. Adding width and height to csv data.
+
+---
+ io.cc | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/io.cc b/io.cc
+index 6ad1d42..735b699 100644
+--- a/io.cc
++++ b/io.cc
+@@ -1042,6 +1042,8 @@ void output_data_csv(const uca_org_t & fin_res)
+       file << "Leakage per bank with leak power management (mW), ";
+       file << "Refresh power as percentage of standby leakage, ";
+       file << "Area (mm2), ";
++      file << "Width (mm), ";
++      file << "Height (mm), ";
+       file << "Ndwl, ";
+       file << "Ndbl, ";
+       file << "Nspd, ";
+@@ -1104,6 +1106,8 @@ void output_data_csv(const uca_org_t & fin_res)
+     file << fin_res.leak_power_with_sleep_transistors_in_mats*1000 << ", ";
+     file << fin_res.data_array.refresh_power / fin_res.data_array.total_power.readOp.leakage << ", ";
+     file << fin_res.area << ", ";
++    file << fin_res.cache_len*1e-3 << ", ";
++    file << fin_res.cache_ht*1e-3 << ", ";
+     file << fin_res.data_array.Ndwl << ", ";
+     file << fin_res.data_array.Ndbl << ", ";
+     file << fin_res.data_array.Nspd << ", ";
+@@ -1463,6 +1467,7 @@ void output_UCA(uca_org_t *fr)
+       }
+     }
+ 
++    output_data_csv(*fr);
+ 
+     Wire wpr;
+     wpr.print_wire();
+-- 
+1.8.3.1
+
