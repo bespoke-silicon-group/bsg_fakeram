@@ -20,18 +20,17 @@ $ make tools
 The input to the BSG Black-box SRAM generator is a simple JSON file that
 contains some information about the technology node you are targeting as well
 as the size and names of SRAMs you would like to generate. Below is an example
-JSON file that can be found in `./example_cfgs/example.cfg`:
+JSON file that can be found in `./example_cfgs/freepdk45.cfg`:
 
 ```
 {
   "tech_nm":     45,
-  "minWidth_nm": 50,
-  "minSpace_nm": 50,
+  "minWidth_nm": 65,
+  "minSpace_nm": 65,
   "metalPrefix": "metal",
   "srams": [
-    {"name": "sram_32x32_1rw",  "width":  32, "depth":  32},
-    {"name": "sram_116x64_1rw", "width": 116, "depth":  64},
-    {"name": "sram_32x512_1rw", "width":  32, "depth": 512}
+    {"name": "sram_32x32_1rw", "width": 32, "depth":  32},
+    {"name": "sram_8x512_1rw", "width":  8, "depth": 512}
   ]
 }
 ```

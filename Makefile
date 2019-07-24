@@ -1,22 +1,21 @@
 export TOP_DIR :=$(shell git rev-parse --show-toplevel)
 
-CONFIG = example_cfgs/example.cfg
+export CACTI_BUILD_DIR := $(TOP_DIR)/tools/cacti
 
-### External tool build directories
-export CACTI_BUILD_DIR :=$(TOP_DIR)/tools/cacti
+CONFIG := $(TOP_DIR)/example_cfgs/freepdk45.cfg
 
 run:
-	./scripts/run_cacti.py $(CONFIG)
+	./scripts/run.py $(CONFIG)
 
-clean:
-	rm -rf results
-
-open.%:
+view.%:
 	klayout ./results/$*/$*.lef &
 
-################################################################################
-## Build External Tools Needed For This Application
-################################################################################
+clean:
+	rm -rf ./results
+
+#=======================================
+# TOOLS
+#=======================================
 
 tools: $(CACTI_BUILD_DIR)
 
@@ -29,3 +28,4 @@ $(CACTI_BUILD_DIR):
 
 clean_tools:
 	rm -rf $(CACTI_BUILD_DIR)
+
