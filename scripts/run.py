@@ -83,9 +83,9 @@ def main ( argc, argv ):
     # TODO: Figure out the best way to come up with these numbers!!!
     t_setup_ns           = access_time_ns/4.0
     t_hold_ns            = access_time_ns/10.0
+    cap_input_pf         = float(csv_data[57])
+    cap_output_pf        = float(csv_data[58])
     pin_dynamic_power_mW = 1.0
-    cap_input_pf         = 1.0
-    cap_output_pf        = 1.0
     
     # Generate the timing, physical and logic views
     generate_lib_view( name, depth, width_in_bits, area_um2, width_um, height_um, standby_leakage_per_bank_mW, t_setup_ns, t_hold_ns, access_time_ns, dynamic_read_power_mW, pin_dynamic_power_mW, cap_input_pf, cap_output_pf, voltage, cycle_time_ns )
@@ -102,24 +102,24 @@ def main ( argc, argv ):
 # bit of the area information) provided from Cacti for the SRAM.
 ################################################################################
 
-def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tcq, pdynamic, pindynamic, cin, cout, voltage, max_period ):
+def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tcq, pdynamic, pindynamic, min_driver_in_cap, min_driver_out_cap, voltage, max_period ):
 
   # Make sure the data types are correct
-  name       = str(name)
-  depth      = int(depth)
-  bits       = int(bits)
-  area       = float(area)
-  x          = float(x)
-  y          = float(y)
-  leakage    = float(leakage)
-  tsetup     = float(tsetup)
-  thold      = float(thold)
-  tcq        = float(tcq)
-  pdynamic   = float(pdynamic)
-  pindynamic = float(pindynamic)
-  cin        = float(cin)
-  cout       = float(cout)
-  voltage    = float(voltage)
+  name              = str(name)
+  depth             = int(depth)
+  bits              = int(bits)
+  area              = float(area)
+  x                 = float(x)
+  y                 = float(y)
+  leakage           = float(leakage)
+  tsetup            = float(tsetup)
+  thold             = float(thold)
+  tcq               = float(tcq)
+  pdynamic          = float(pdynamic)
+  pindynamic        = float(pindynamic)
+  min_driver_in_cap = float(min_driver_in_cap)
+  min_driver_out_cap= float(min_driver_out_cap)
+  voltage           = float(voltage)
 
   # Only support 1RW srams. At some point, expose these as well!
   num_rwport = 1
@@ -170,11 +170,11 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
   LIB_file.write( '    /* default attributes */\n')
   LIB_file.write( '    default_cell_leakage_power : 0;\n')
   LIB_file.write( '    default_fanout_load : 1;\n')
-  LIB_file.write( '    default_inout_pin_cap : 0.005;\n')
-  LIB_file.write( '    default_input_pin_cap : 0.005;\n')
+  LIB_file.write( '    default_inout_pin_cap : 0.0;\n')
+  LIB_file.write( '    default_input_pin_cap : 0.0;\n')
   LIB_file.write( '    default_output_pin_cap : 0.0;\n')
   LIB_file.write( '    default_input_pin_cap : 0.0;\n')
-  LIB_file.write( '    default_max_transition : 0.500;\n\n')
+  LIB_file.write( '    default_max_transition : 0.0;\n\n')
   LIB_file.write( '    default_operating_conditions : tt_1.0_25.0;\n')
   LIB_file.write( '    default_leakage_power_density : 0.0;\n')
   LIB_file.write( '\n')
@@ -296,7 +296,7 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
 
   LIB_file.write('    pin(clk)   {\n')
   LIB_file.write('        direction : input;\n')
-  LIB_file.write('        capacitance : %.3f;\n' % (cin*2.5))
+  LIB_file.write('        capacitance : %.3f;\n' % (min_driver_in_cap*2.5))
   LIB_file.write('        clock : true;\n')
   #LIB_file.write('        max_transition : 0.01;\n') # Max rise/fall time
   LIB_file.write('        min_pulse_width_high : %.3f ;\n' % (max_period*0.01))
@@ -324,7 +324,7 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
     LIB_file.write('    bus(rd_out)   {\n')
     LIB_file.write('        bus_type : %s_DATA;\n' % name)
     LIB_file.write('        direction : output;\n')
-    #LIB_file.write('        max_capacitance : %s;\n' % str(cout))
+    LIB_file.write('        max_capacitance : %.3f;\n' % (min_driver_in_cap*32))
     LIB_file.write('        memory_read() {\n')
     LIB_file.write('            address : addr_in;\n')
     LIB_file.write('        }\n')
@@ -362,7 +362,7 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
   for i in range(int(num_rwport)) :
     LIB_file.write('    pin(we_in){\n')
     LIB_file.write('        direction : input;\n')
-    #LIB_file.write('        capacitance : %s;\n' % str(cin))
+    LIB_file.write('        capacitance : %.3f;\n' % (min_driver_in_cap))
     LIB_file.write('        timing() {\n')
     LIB_file.write('            related_pin : clk;\n')
     LIB_file.write('            timing_type : setup_rising ;\n')
@@ -417,7 +417,7 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
 
   LIB_file.write('    pin(ce_in){\n')
   LIB_file.write('        direction : input;\n')
-  #LIB_file.write('        capacitance : %s;\n' % str(cin))
+  LIB_file.write('        capacitance : %.3f;\n' % (min_driver_in_cap))
   LIB_file.write('        timing() {\n')
   LIB_file.write('            related_pin : clk;\n')
   LIB_file.write('            timing_type : setup_rising ;\n')
@@ -474,7 +474,7 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
     LIB_file.write('    bus(addr_in)   {\n')
     LIB_file.write('        bus_type : %s_ADDRESS;\n' % name)
     LIB_file.write('        direction : input;\n')
-    #LIB_file.write('        capacitance : %s;\n' % str(cin))
+    LIB_file.write('        capacitance : %.3f;\n' % (min_driver_in_cap))
     LIB_file.write('        timing() {\n')
     LIB_file.write('            related_pin : clk;\n')
     LIB_file.write('            timing_type : setup_rising ;\n')
@@ -535,7 +535,7 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
     LIB_file.write('            clocked_on : "clk";\n')
     LIB_file.write('        }\n')
     LIB_file.write('        direction : input;\n')
-    #LIB_file.write('        capacitance : %s;\n' % str(cin))
+    LIB_file.write('        capacitance : %.3f;\n' % (min_driver_in_cap))
     LIB_file.write('        timing() {\n')
     LIB_file.write('            related_pin     : clk;\n')
     LIB_file.write('            timing_type     : setup_rising ;\n')
@@ -608,7 +608,7 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
     LIB_file.write('            clocked_on : "clk";\n')
     LIB_file.write('        }\n')
     LIB_file.write('        direction : input;\n')
-    #LIB_file.write('        capacitance : %s;\n' % str(cin))
+    LIB_file.write('        capacitance : %.3f;\n' % (min_driver_in_cap))
     LIB_file.write('        timing() {\n')
     LIB_file.write('            related_pin     : clk;\n')
     LIB_file.write('            timing_type     : setup_rising ;\n')

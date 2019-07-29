@@ -1,14 +1,15 @@
-From 65f7b62f7aaf60670d2419b6bf1472762f44d70a Mon Sep 17 00:00:00 2001
+From b275fccd13c842d3c1d034b9922811b1d9674e12 Mon Sep 17 00:00:00 2001
 From: Scott Davidson <scottdavidson1992@gmail.com>
-Date: Tue, 23 Jul 2019 20:14:50 -0700
-Subject: [PATCH] Output csv data. Adding width and height to csv data.
+Date: Mon, 29 Jul 2019 10:47:41 -0700
+Subject: [PATCH] Updates to output width, heigh, min-driver in and out
+ capacitance.
 
 ---
- io.cc | 5 +++++
- 1 file changed, 5 insertions(+)
+ io.cc | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
 diff --git a/io.cc b/io.cc
-index 6ad1d42..735b699 100644
+index 6ad1d42..ef00945 100644
 --- a/io.cc
 +++ b/io.cc
 @@ -1042,6 +1042,8 @@ void output_data_csv(const uca_org_t & fin_res)
@@ -20,7 +21,18 @@ index 6ad1d42..735b699 100644
        file << "Ndwl, ";
        file << "Ndbl, ";
        file << "Nspd, ";
-@@ -1104,6 +1106,8 @@ void output_data_csv(const uca_org_t & fin_res)
+@@ -1081,7 +1083,9 @@ void output_data_csv(const uca_org_t & fin_res)
+       file << "Area opt (perc), ";
+       file << "Delay opt (perc), ";
+       file << "Repeater opt (perc), ";
+-      file << "Aspect ratio" << endl;
++      file << "Aspect ratio, ";
++      file << "Input cap (pF), ";
++      file << "Output cap (pF)" << endl;
+     }
+     file << g_ip->F_sz_nm << ", ";
+     file << g_ip->cache_sz << ", ";
+@@ -1104,6 +1108,8 @@ void output_data_csv(const uca_org_t & fin_res)
      file << fin_res.leak_power_with_sleep_transistors_in_mats*1000 << ", ";
      file << fin_res.data_array.refresh_power / fin_res.data_array.total_power.readOp.leakage << ", ";
      file << fin_res.area << ", ";
@@ -29,7 +41,26 @@ index 6ad1d42..735b699 100644
      file << fin_res.data_array.Ndwl << ", ";
      file << fin_res.data_array.Ndbl << ", ";
      file << fin_res.data_array.Nspd << ", ";
-@@ -1463,6 +1467,7 @@ void output_UCA(uca_org_t *fr)
+@@ -1137,7 +1143,17 @@ void output_data_csv(const uca_org_t & fin_res)
+     file << fin_res.data_array.trcd * 1e9 << ", " ;
+     file << fin_res.data_array.cas_latency * 1e9 << ", " ;
+     file << fin_res.data_array.precharge_delay * 1e9 << ", " ;
+-    file << fin_res.data_array.all_banks_height / fin_res.data_array.all_banks_width << endl;
++    file << fin_res.data_array.all_banks_height / fin_res.data_array.all_banks_width << ", ";
++
++    //double min_w_pmos = 1.0;
++    TechnologyParameter::DeviceType *dt = new TechnologyParameter::DeviceType;
++    double min_w_pmos = dt->n_to_p_eff_curr_drv_ratio*g_tp.min_w_nmos_;
++    double input_cap = gate_C(g_tp.min_w_nmos_ + min_w_pmos, 0);
++    double out_cap = drain_C_(min_w_pmos, PCH, 1, 1, g_tp.cell_h_def) + drain_C_(g_tp.min_w_nmos_, NCH, 1, 1, g_tp.cell_h_def);
++    delete dt;
++
++    file << input_cap * 1e15 << ", " ;
++    file << out_cap * 1e15 << endl ;
+   }
+   file.close();
+ }
+@@ -1463,6 +1479,7 @@ void output_UCA(uca_org_t *fr)
        }
      }
  
