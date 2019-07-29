@@ -77,16 +77,17 @@ def main ( argc, argv ):
     access_time_ns              = float(csv_data[5])
     cycle_time_ns               = float(csv_data[6])
     dynamic_read_power_mW       = float(csv_data[16])
+    cap_input_pf                = float(csv_data[57])
+    cap_output_pf               = float(csv_data[58])
 
     area_um2  = width_um * height_um
 
-    # TODO: Figure out the best way to come up with these numbers!!!
-    t_setup_ns           = access_time_ns/4.0
-    t_hold_ns            = access_time_ns/10.0
-    cap_input_pf         = float(csv_data[57])
-    cap_output_pf        = float(csv_data[58])
     pin_dynamic_power_mW = 1.0
-    
+
+    # TODO: Figure out the best way to come up with these numbers!!!
+    t_setup_ns = access_time_ns/4.0
+    t_hold_ns  = access_time_ns/10.0
+
     # Generate the timing, physical and logic views
     generate_lib_view( name, depth, width_in_bits, area_um2, width_um, height_um, standby_leakage_per_bank_mW, t_setup_ns, t_hold_ns, access_time_ns, dynamic_read_power_mW, pin_dynamic_power_mW, cap_input_pf, cap_output_pf, voltage, cycle_time_ns )
     generate_lef_view( name, depth, width_in_bits, width_um, height_um, minWidth_um, minSpace_um, metalPrefix )
@@ -133,10 +134,19 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
   date = d.isoformat()
   current_time = time.strftime("%H:%M:%SZ", time.gmtime())
 
-  # TODO: Is this good for all processes? Can we estimate from cacti?
-
-  # For NLDM tables, we have 2 indicies for the tool to interpolate values
-  # based on input slew and output load. These are the indicies.
+  # TODO: Arbitrary indicies for the NLDM table. This is used for Clk->Q arcs
+  # as well as setup/hold times. We only have a single value for these, there
+  # are two options. 1. adding some sort of static variation of the single
+  # value for each table entry, 2. use the same value so all interpolated
+  # values are the same. The 1st is more realistic but depend on good variation
+  # values which is process sepcific and I don't have a strategy for
+  # determining decent variation values without breaking NDA so right now we
+  # have no variations.
+  #
+  # The table indicies are main min/max values for interpolation. The tools
+  # typically don't like extrapolation so a large range is nice, but makes the
+  # single value strategy described above even more unrealistic.
+  #
   slew_indicies = '0.01, 0.5'    # input pin transisiton [ns]
   load_indicies = '0.001, 0.500' # output capacitance [pF]
 
@@ -296,7 +306,7 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
 
   LIB_file.write('    pin(clk)   {\n')
   LIB_file.write('        direction : input;\n')
-  LIB_file.write('        capacitance : %.3f;\n' % (min_driver_in_cap*2.5))
+  LIB_file.write('        capacitance : %.3f;\n' % (min_driver_in_cap*2.5)) ;# Clk pin is usually high cap, somewhere between an X2 and X3 feels about right.
   LIB_file.write('        clock : true;\n')
   #LIB_file.write('        max_transition : 0.01;\n') # Max rise/fall time
   LIB_file.write('        min_pulse_width_high : %.3f ;\n' % (max_period*0.01))
