@@ -63,33 +63,38 @@ def main ( argc, argv ):
       fid.write( '\n'.join(cacti_config).format(total_size, width_in_bytes, rw_ports, 0, 0, tech_node_um, width_in_bits) )
 
     # Run cacti
-    os.system( os.environ['CACTI_BUILD_DIR'] + os.sep + 'cacti' + ' -infile ' + cacti_config_filename )
+    pre_cacti_dir = os.getcwd()
+    os.chdir(os.environ['CACTI_BUILD_DIR'] )
+    os.system( '.' + os.sep + 'cacti -infile ' + pre_cacti_dir + os.sep + cacti_config_filename )
+    os.chdir(pre_cacti_dir)
 
     # Read cacti CSV and extract data
-    with open( 'out.csv', 'r' ) as fid:
+    with open( 'cacti.cfg.out', 'r' ) as fid:
       lines = [line for line in fid]
       csv_data = lines[1].split(',')
 
     # Grab values from the Cacti CSV file
-    width_um                    = float(csv_data[21])*1000.0
-    height_um                   = float(csv_data[22])*1000.0
-    standby_leakage_per_bank_mW = float(csv_data[17])
+    standby_leakage_per_bank_mW = float(csv_data[11])
     access_time_ns              = float(csv_data[5])
     cycle_time_ns               = float(csv_data[6])
-    dynamic_read_power_mW       = float(csv_data[16])
-    cap_input_pf                = float(csv_data[57])
-    cap_output_pf               = float(csv_data[58])
+    dynamic_read_power_mW       = float(csv_data[10])
+    aspect_ratio                = float(csv_data[31])
+    area_um2                    = float(csv_data[12])*1e6
+    fo4_ps                      = float(csv_data[30])
 
-    area_um2  = width_um * height_um
+    width_um                    = math.sqrt( area_um2 * aspect_ratio )
+    height_um                   = math.sqrt( area_um2 / aspect_ratio )
+    cap_input_pf                = float(csv_data[32])
 
-    pin_dynamic_power_mW = 1.0
+    # P = 0.5*CV^2
+    pin_dynamic_power_mW = (0.5 * cap_input_pf * (float(voltage)**2))*1e9
 
-    # TODO: Figure out the best way to come up with these numbers!!!
-    t_setup_ns = access_time_ns/4.0
-    t_hold_ns  = access_time_ns/10.0
+    # TODO: Figure out the best way to come up with these numbers
+    t_setup_ns = access_time_ns ;# access time is clk to Q, assume that data to "reg" is about the same.
+    t_hold_ns  = 0
 
     # Generate the timing, physical and logic views
-    generate_lib_view( name, depth, width_in_bits, area_um2, width_um, height_um, standby_leakage_per_bank_mW, t_setup_ns, t_hold_ns, access_time_ns, dynamic_read_power_mW, pin_dynamic_power_mW, cap_input_pf, cap_output_pf, voltage, cycle_time_ns )
+    generate_lib_view( name, depth, width_in_bits, area_um2, width_um, height_um, standby_leakage_per_bank_mW, t_setup_ns, t_hold_ns, access_time_ns, dynamic_read_power_mW, pin_dynamic_power_mW, cap_input_pf, voltage, cycle_time_ns, fo4_ps )
     generate_lef_view( name, depth, width_in_bits, width_um, height_um, minWidth_um, minSpace_um, metalPrefix )
     generate_verilog_view( name, depth, width_in_bits )
 
@@ -103,7 +108,7 @@ def main ( argc, argv ):
 # bit of the area information) provided from Cacti for the SRAM.
 ################################################################################
 
-def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tcq, pdynamic, pindynamic, min_driver_in_cap, min_driver_out_cap, voltage, max_period ):
+def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tcq, pdynamic, pindynamic, min_driver_in_cap, voltage, min_period, fo4 ):
 
   # Make sure the data types are correct
   name              = str(name)
@@ -117,10 +122,11 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
   thold             = float(thold)
   tcq               = float(tcq)
   pdynamic          = float(pdynamic)
-  pindynamic        = float(pindynamic)
+  pindynamic        = float(pindynamic)/1e9
   min_driver_in_cap = float(min_driver_in_cap)
-  min_driver_out_cap= float(min_driver_out_cap)
   voltage           = float(voltage)
+  min_period        = float(min_period)
+  fo4               = float(fo4)/1e3
 
   # Only support 1RW srams. At some point, expose these as well!
   num_rwport = 1
@@ -147,8 +153,8 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
   # typically don't like extrapolation so a large range is nice, but makes the
   # single value strategy described above even more unrealistic.
   #
-  slew_indicies = '0.01, 0.5'    # input pin transisiton [ns]
-  load_indicies = '0.001, 0.500' # output capacitance [pF]
+  slew_indicies = '%.3f, %.3f' % (1*fo4, 50*fo4) ;# input pin transisiton with between 1xfo4 and 50xfo4
+  load_indicies = '%.3f, %.3f' % (1*min_driver_in_cap, 32*min_driver_in_cap) ;# output capacitance table between a 1x and 32x inverter
 
   # Start generating the LIB file
 
@@ -306,14 +312,14 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
 
   LIB_file.write('    pin(clk)   {\n')
   LIB_file.write('        direction : input;\n')
-  LIB_file.write('        capacitance : %.3f;\n' % (min_driver_in_cap*2.5)) ;# Clk pin is usually high cap, somewhere between an X2 and X3 feels about right.
+  LIB_file.write('        capacitance : %.3f;\n' % (min_driver_in_cap*3)) ;# Clk pin is usually higher cap for fanout control, assuming an x3 driver.
   LIB_file.write('        clock : true;\n')
   #LIB_file.write('        max_transition : 0.01;\n') # Max rise/fall time
-  LIB_file.write('        min_pulse_width_high : %.3f ;\n' % (max_period*0.01))
-  LIB_file.write('        min_pulse_width_low  : %.3f ;\n' % (max_period*0.01))
-  LIB_file.write('        min_period           : %.3f ;\n' % (max_period))
+  #LIB_file.write('        min_pulse_width_high : %.3f ;\n' % (min_period))
+  #LIB_file.write('        min_pulse_width_low  : %.3f ;\n' % (min_period))
+  LIB_file.write('        min_period           : %.3f ;\n' % (min_period))
   #LIB_file.write('        minimum_period(){\n')
-  #LIB_file.write('            constraint : %.3f ;\n' % max_period)
+  #LIB_file.write('            constraint : %.3f ;\n' % min_period)
   #LIB_file.write('            when : "1";\n')
   #LIB_file.write('            sdf_cond : "1";\n')
   #LIB_file.write('        }\n')
@@ -334,7 +340,7 @@ def generate_lib_view( name, depth, bits, area, x, y, leakage, tsetup, thold, tc
     LIB_file.write('    bus(rd_out)   {\n')
     LIB_file.write('        bus_type : %s_DATA;\n' % name)
     LIB_file.write('        direction : output;\n')
-    LIB_file.write('        max_capacitance : %.3f;\n' % (min_driver_in_cap*32))
+    LIB_file.write('        max_capacitance : %.3f;\n' % (min_driver_in_cap*32)) ;# Based on 32x inverter being a common max (or near max) inverter
     LIB_file.write('        memory_read() {\n')
     LIB_file.write('            address : addr_in;\n')
     LIB_file.write('        }\n')
@@ -1079,6 +1085,12 @@ def generate_lef_view( name, depth, bits, x, y, minWidth, minSpace, metalPrefix 
 
 cacti_config = []
 cacti_config.append( '-size (bytes) {0}' )
+cacti_config.append( '-Array Power Gating - "false"' )
+cacti_config.append( '-WL Power Gating - "false"' )
+cacti_config.append( '-CL Power Gating - "false"' )
+cacti_config.append( '-Bitline floating - "false"' )
+cacti_config.append( '-Interconnect Power Gating - "false"' )
+cacti_config.append( '-Power Gating Performance Loss 0.01' )
 cacti_config.append( '-block size (bytes) {1}' )
 cacti_config.append( '-associativity 1' )
 cacti_config.append( '-read-write port {2}' )
@@ -1099,29 +1111,54 @@ cacti_config.append( '-operating temperature (K) 300' )
 cacti_config.append( '-cache type "ram"' )
 cacti_config.append( '-tag size (b) "default"' )
 cacti_config.append( '-access mode (normal, sequential, fast) - "normal"' )
-cacti_config.append( '-design objective (weight delay, dynamic power, leakage power, cycle time, area) 0:0:0:0:100' )
-cacti_config.append( '-deviate (delay, dynamic power, leakage power, cycle time, area) 60:100000:100000:100000:1000000' )
+cacti_config.append( '-design objective (weight delay, dynamic power, leakage power, cycle time, area) 0:0:0:100:0' )
+cacti_config.append( '-deviate (delay, dynamic power, leakage power, cycle time, area) 20:100000:100000:100000:100000' )
 cacti_config.append( '-NUCAdesign objective (weight delay, dynamic power, leakage power, cycle time, area) 100:100:0:0:100' )
 cacti_config.append( '-NUCAdeviate (delay, dynamic power, leakage power, cycle time, area) 10:10000:10000:10000:10000' )
-cacti_config.append( '-Optimize ED or ED^2 (ED, ED^2, NONE): "NONE"' )
+cacti_config.append( '-Optimize ED or ED^2 (ED, ED^2, NONE): "ED^2"' )
 cacti_config.append( '-Cache model (NUCA, UCA)  - "UCA"' )
 cacti_config.append( '-NUCA bank count 0' )
-cacti_config.append( '-Wire signalling (fullswing, lowswing, default) - "default"' )
-cacti_config.append( '-Wire inside mat - "global"' )
-cacti_config.append( '-Wire outside mat - "global"' )
+cacti_config.append( '-Wire signaling (fullswing, lowswing, default) - "default"' )
+cacti_config.append( '-Wire inside mat - "semi-global"' )
+cacti_config.append( '-Wire outside mat - "semi-global"' )
 cacti_config.append( '-Interconnect projection - "conservative"' )
 cacti_config.append( '-Core count 4' )
-cacti_config.append( '-Cache level (L2/L3) - "L2"' )
-cacti_config.append( '-Add ECC - "true"' )
+cacti_config.append( '-Cache level (L2/L3) - "L3"' )
+cacti_config.append( '-Add ECC - "false"' )
 cacti_config.append( '-Print level (DETAILED, CONCISE) - "DETAILED"' )
-cacti_config.append( '-Print input parameters - "true"' )
+cacti_config.append( '-Print input parameters - "false"' )
 cacti_config.append( '-Force cache config - "false"' )
-cacti_config.append( '-Ndwl 64' )
-cacti_config.append( '-Ndbl 64' )
-cacti_config.append( '-Nspd 64' )
+cacti_config.append( '-Ndwl 1' )
+cacti_config.append( '-Ndbl 1' )
+cacti_config.append( '-Nspd 0' )
 cacti_config.append( '-Ndcm 1' )
-cacti_config.append( '-Ndsam1 4' )
-cacti_config.append( '-Ndsam2 1' )
+cacti_config.append( '-Ndsam1 0' )
+cacti_config.append( '-Ndsam2 0' )
+cacti_config.append( '-dram_type "D"' )
+cacti_config.append( '-iostate "W"' )
+cacti_config.append( '-addr_timing 1.0' )
+cacti_config.append( '-mem_density 8 Gb' )
+cacti_config.append( '-bus_freq 800 MHz' )
+cacti_config.append( '-duty_cycle 1.0' )
+cacti_config.append( '-activity_dq 1.0' )
+cacti_config.append( '-activity_ca 1.0' )
+cacti_config.append( '-num_dq 72' )
+cacti_config.append( '-num_dqs 36' )
+cacti_config.append( '-num_ca 35' )
+cacti_config.append( '-num_clk  2' )
+cacti_config.append( '-num_mem_dq 1' )
+cacti_config.append( '-mem_data_width 4' )
+cacti_config.append( '-rtt_value 10000' )
+cacti_config.append( '-ron_value 34' )
+cacti_config.append( '-tflight_value' )
+cacti_config.append( '-num_bobs 1' )
+cacti_config.append( '-capacity 80	' )
+cacti_config.append( '-num_channels_per_bob 1	' )
+cacti_config.append( '-first metric "Cost"' )
+cacti_config.append( '-second metric "Bandwidth"' )
+cacti_config.append( '-third metric "Energy"	' )
+cacti_config.append( '-DIMM model "ALL"' )
+cacti_config.append( '-mirror_in_bob "F"' )
 
 ### Entry point
 if __name__ == '__main__':
