@@ -30,8 +30,8 @@ JSON file that can be found in `./example_cfgs/freepdk45.cfg`:
   "metalPrefix": "metal",
   "voltage": 1.0,
   "srams": [
-    {"name": "sram_32x32_1rw", "width": 32, "depth":  32},
-    {"name": "sram_8x512_1rw", "width":  8, "depth": 512}
+    {"name": "sram_32x32_1rw", "width": 32, "depth":  32, "banks": 1},
+    {"name": "sram_8x512_1rw", "width":  8, "depth": 512, "banks": 1}
   ]
 }
 ```
@@ -50,7 +50,7 @@ modeling PPA of the SRAM.
 `voltage` - Nominal operating voltage for the tech node.
 
 `srams` - A list of SRAMs to generate. Each sram should have a `name`, `width`
-(or the number of bits per word), and `depth` (or number of words). 
+(or the number of bits per word), `depth` (or number of words), and `banks`.
 
 
 ### Running the Generator
