@@ -1016,28 +1016,28 @@ def generate_lef_view( name, depth, bits, x, y, minWidth, minSpace, metalPrefix 
   pg_strap_pitch = 2*pg_strap_width + 2*(4*minSpace)    ;# arbitrary but reminiscent of real SRAMs.
 
   y_tmp = y - y_top_offset
+  LEF_file.write('  PIN VSS\n')
+  LEF_file.write('    DIRECTION INOUT ;\n')
+  LEF_file.write('    USE GROUND ;\n')
+  LEF_file.write('    PORT\n')
+  LEF_file.write('      LAYER %s4 ;\n' % metalPrefix)
   while y_tmp > y_bottom_offset:
-    LEF_file.write('  PIN VSS\n')
-    LEF_file.write('    DIRECTION INOUT ;\n')
-    LEF_file.write('    USE GROUND ;\n')
-    LEF_file.write('    PORT\n')
-    LEF_file.write('      LAYER %s4 ;\n' % metalPrefix)
     LEF_file.write('      RECT %.3f %.3f %.3f %.3f ;\n' % ((temp_x_0), (y_tmp), (temp_x_1), (y_tmp + pg_strap_width)))
-    LEF_file.write('      END\n')
-    LEF_file.write('    END VSS\n')
     y_tmp = y_tmp - pg_strap_width - pg_strap_pitch
+  LEF_file.write('      END\n')
+  LEF_file.write('    END VSS\n')
 
   y_tmp = y - y_top_offset - pg_strap_width/2 - pg_strap_pitch/2
+  LEF_file.write('  PIN VDD\n')
+  LEF_file.write('    DIRECTION INOUT ;\n')
+  LEF_file.write('    USE POWER ;\n')
+  LEF_file.write('    PORT\n')
+  LEF_file.write('      LAYER %s4 ;\n' % metalPrefix)
   while y_tmp > y_bottom_offset:
-    LEF_file.write('  PIN VDD\n')
-    LEF_file.write('    DIRECTION INOUT ;\n')
-    LEF_file.write('    USE POWER ;\n')
-    LEF_file.write('    PORT\n')
-    LEF_file.write('      LAYER %s4 ;\n' % metalPrefix)
     LEF_file.write('      RECT %.3f %.3f %.3f %.3f ;\n' % ((temp_x_0), (y_tmp), (temp_x_1), (y_tmp + pg_strap_width)))
-    LEF_file.write('      END\n')
-    LEF_file.write('    END VDD\n')
     y_tmp = y_tmp - pg_strap_width - pg_strap_pitch
+  LEF_file.write('      END\n')
+  LEF_file.write('    END VDD\n')
 
   ########################################
   # Create obstructions
