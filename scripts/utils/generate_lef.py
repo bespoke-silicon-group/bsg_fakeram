@@ -141,7 +141,7 @@ def generate_lef( mem ):
         y_step = y_offset + supply_pin_pitch
         fid.write('  PIN VDD\n')
         fid.write('    DIRECTION INOUT ;\n')
-        fid.write('    USE GROUND ;\n')
+        fid.write('    USE POWER ;\n')
         fid.write('    PORT\n')
         fid.write('      LAYER %s ;\n' % supply_pin_layer)
         while y_step <= h - y_offset:
