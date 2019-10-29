@@ -25,7 +25,7 @@ def generate_lef( mem ):
     min_pin_width   = mem.process.pinWidth_um
     min_pin_pitch   = mem.process.pinPitch_um
     metalPrefix     = mem.process.metalPrefix
-    flip            = mem.process.flipSupplyPins.lower() == 'true'
+    flip            = mem.process.flipPins.lower() == 'true'
 
     # Offset from bottom edge to first pin
     x_offset = 10 * min_pin_pitch   ;# arbitrary offset (looks decent)
@@ -315,7 +315,7 @@ def generate_lef( mem ):
 #
 def lef_add_pin( fid, mem, pin_name, is_input, y, pitch ):
 
-  layer = mem.process.metalPrefix + ('3' if mem.process.flipSupplyPins.lower() == 'true' else '4')
+  layer = mem.process.metalPrefix + ('3' if mem.process.flipPins.lower() == 'true' else '4')
   pw  = mem.process.pinWidth_um
   hpw = (mem.process.pinWidth_um/2.0) ;# half pin width
 

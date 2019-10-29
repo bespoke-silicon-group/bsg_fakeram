@@ -21,7 +21,7 @@ class Process:
     # Optional keys
     self.snapWidth_nm   = int(json_data['snapWidth_nm']) if 'snapWidth_nm' in json_data else 1
     self.snapHeight_nm  = int(json_data['snapHeight_nm']) if 'snapHeight_nm' in json_data else 1
-    self.flipSupplyPins = str(json_data['flipSupplyPins']) if 'flipSupplyPins' in json_data else 'false'
+    self.flipPins       = str(json_data['flipPins']) if 'flipPins' in json_data else 'false'
 
     # Converted values
     self.tech_um     = self.tech_nm / 1000.0
