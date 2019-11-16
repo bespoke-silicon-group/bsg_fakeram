@@ -9,6 +9,7 @@ from utils.class_memory import Memory
 from utils.generate_lib import generate_lib
 from utils.generate_lef import generate_lef
 from utils.generate_verilog import generate_verilog
+from utils.generate_verilog import generate_verilog_bb
 
 ################################################################################
 # RUN GENERATOR
@@ -40,6 +41,7 @@ def main ( argc, argv ):
     generate_lib(memory)
     generate_lef(memory)
     generate_verilog(memory)
+    generate_verilog_bb(memory)
 
 ### Entry point
 if __name__ == '__main__':

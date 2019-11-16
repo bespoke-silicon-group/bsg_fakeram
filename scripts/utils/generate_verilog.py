@@ -104,3 +104,58 @@ def generate_verilog( mem ):
     V_file.write('endmodule\n')
 
     V_file.close()
+
+################################################################################
+# GENERATE VERILOG BLACKBOX VIEW
+#
+# Generate a .bb.v file based on the given SRAM. This is the same as the
+# standard verilog view but only has the module definition and port
+# declarations (no internal logic).
+################################################################################
+
+def generate_verilog_bb( mem ):
+
+    name  = str(mem.name)
+    depth = int(mem.depth)
+    bits  = int(mem.width_in_bits)
+    num_rwport = mem.rw_ports
+    addr_width = math.ceil(math.log2(depth))
+
+    V_file = open(os.sep.join([mem.results_dir, name + '.bb.v']), 'w')
+
+    V_file.write('module %s\n' % name)
+    V_file.write('(\n')
+    for i in range(int(num_rwport)) :
+      V_file.write('   rd_out,\n')
+    for i in range(int(num_rwport)) :
+      V_file.write('   addr_in,\n')
+    for i in range(int(num_rwport)) :
+      V_file.write('   we_in,\n')
+    for i in range(int(num_rwport)) :
+      V_file.write('   wd_in,\n')
+    for i in range(int(num_rwport)) :
+      V_file.write('   w_mask_in,\n')
+    V_file.write('   clk,\n')
+    V_file.write('   ce_in\n')
+    V_file.write(');\n')
+    V_file.write('   parameter BITS = %s;\n' % str(bits))
+    V_file.write('   parameter WORD_DEPTH = %s;\n' % str(depth))
+    V_file.write('   parameter ADDR_WIDTH = %s;\n' % str(addr_width))
+    V_file.write('   parameter corrupt_mem_on_X_p = 1;\n')
+    V_file.write('\n')
+    for i in range(int(num_rwport)) :
+      V_file.write('   output reg [BITS-1:0]    rd_out;\n')
+    for i in range(int(num_rwport)) :
+      V_file.write('   input  [ADDR_WIDTH-1:0]  addr_in;\n')
+    for i in range(int(num_rwport)) :
+      V_file.write('   input                    we_in;\n')
+    for i in range(int(num_rwport)) :
+      V_file.write('   input  [BITS-1:0]        wd_in;\n')
+    for i in range(int(num_rwport)) :
+      V_file.write('   input  [BITS-1:0]        w_mask_in;\n')
+    V_file.write('   input                    clk;\n')
+    V_file.write('   input                    ce_in;\n')
+    V_file.write('\n')
+    V_file.write('endmodule\n')
+    V_file.close()
+
