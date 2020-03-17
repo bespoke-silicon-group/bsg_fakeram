@@ -1,6 +1,6 @@
 import math
 import os
-
+from pathlib import Path
 from utils.cacti_config import cacti_config
 
 ################################################################################
@@ -25,7 +25,8 @@ class Memory:
     self.width_in_bytes = math.ceil(self.width_in_bits / 8.0)
     self.total_size     = self.width_in_bytes * self.depth
     if output_dir: # Output dir was set by command line option
-      self.results_dir = os.sep.join([output_dir, self.name])
+      p = str(Path(output_dir).expanduser().resolve(strict=False))
+      self.results_dir = os.sep.join([p, self.name])
     else:
       self.results_dir = os.sep.join([os.getcwd(), 'results', self.name])
     if not os.path.exists( self.results_dir ):
@@ -69,6 +70,7 @@ class Memory:
     fid.close()
     odir = os.getcwd()
     os.chdir(self.cacti_dir )
-    os.system( os.sep.join(['.','cacti -infile ']) + os.sep.join([self.results_dir,'cacti.cfg']))
+    cmd = os.sep.join(['.','cacti -infile ']) + os.sep.join([self.results_dir,'cacti.cfg'])
+    os.system( cmd)
     os.chdir(odir)
 
