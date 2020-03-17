@@ -14,7 +14,7 @@ from utils.cacti_config import cacti_config
 
 class Memory:
 
-  def __init__( self, process, sram_data ):
+  def __init__( self, process, sram_data , output_dir = None, cacti_dir = None):
 
     self.process        = process
     self.name           = str(sram_data['name'])
@@ -24,11 +24,16 @@ class Memory:
     self.rw_ports       = 1
     self.width_in_bytes = math.ceil(self.width_in_bits / 8.0)
     self.total_size     = self.width_in_bytes * self.depth
-
-    self.results_dir = os.sep.join([os.getcwd(), 'results', self.name])
+    if output_dir: # Output dir was set by command line option
+      self.results_dir = os.sep.join([output_dir, self.name])
+    else:
+      self.results_dir = os.sep.join([os.getcwd(), 'results', self.name])
     if not os.path.exists( self.results_dir ):
       os.makedirs( self.results_dir )
-
+    if cacti_dir:
+      self.cacti_dir = cacti_dir
+    else:
+      self.cacti_dir = os.environ['CACTI_BUILD_DIR']
     self.__run_cacti()
     with open( os.sep.join([self.results_dir, 'cacti.cfg.out']), 'r' ) as fid:
       lines = [line for line in fid]
@@ -63,7 +68,7 @@ class Memory:
              , self.process.tech_um, self.width_in_bits, self.num_banks ))
     fid.close()
     odir = os.getcwd()
-    os.chdir(os.environ['CACTI_BUILD_DIR'] )
+    os.chdir(self.cacti_dir )
     os.system( os.sep.join(['.','cacti -infile ']) + os.sep.join([self.results_dir,'cacti.cfg']))
     os.chdir(odir)
 

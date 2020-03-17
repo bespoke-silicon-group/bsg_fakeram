@@ -2,6 +2,7 @@
 
 import sys
 import json
+import argparse
 
 from utils.class_process import Process
 from utils.class_memory import Memory
@@ -20,15 +21,35 @@ from utils.generate_verilog import generate_verilog_bb
 # found in the JSON configuration file.
 ################################################################################
 
-def main ( argc, argv ):
+def get_args() -> argparse.Namespace:
+    """
+    Get command line arguments
+    """
+    parser = argparse.ArgumentParser(
+        description="""
+    BSG Black-box SRAM Generator --
+    This project is designed to generate black-boxed SRAMs for use in CAD
+    flows where either an SRAM generator is not avaible or doesn't
+    exist.  """
+    )
 
-  # Check the command line arguments
-  if argc != 2:
-    print('Usage: %s <json cfg>' % argv[0])
-    sys.exit(1)
+    parser.add_argument("config", help="JSON configuration file")
+
+    parser.add_argument(
+        "--output_dir", action="store", help="Output directory ", required=False, default=None
+    )
+
+    parser.add_argument(
+        "--cacti_dir", action="store", help="CACTI installation directory ", required=False, default=None
+    )
+
+    return parser.parse_args()
+
+
+def main ( args : argparse.Namespace):
 
   # Load the JSON configuration file
-  with open(argv[1], 'r') as fid:
+  with open(args.config, 'r') as fid:
     raw = [line.strip() for line in fid if not line.strip().startswith('#')]
   json_data = json.loads('\n'.join(raw))
 
@@ -37,7 +58,7 @@ def main ( argc, argv ):
 
   # Go through each sram and generate the lib, lef and v files
   for sram_data in json_data['srams']:
-    memory = Memory(process, sram_data)
+    memory = Memory(process, sram_data, args.output_dir, args.cacti_dir)
     generate_lib(memory)
     generate_lef(memory)
     generate_verilog(memory)
@@ -45,5 +66,6 @@ def main ( argc, argv ):
 
 ### Entry point
 if __name__ == '__main__':
-  main( len(sys.argv), sys.argv )
+  args = get_args()
+  main( args )
 
