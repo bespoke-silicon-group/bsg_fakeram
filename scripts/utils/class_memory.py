@@ -1,5 +1,6 @@
 import math
 import os
+import sys
 from pathlib import Path
 from utils.cacti_config import cacti_config
 
@@ -38,19 +39,28 @@ class Memory:
     self.__run_cacti()
     with open( os.sep.join([self.results_dir, 'cacti.cfg.out']), 'r' ) as fid:
       lines = [line for line in fid]
-      cacti_data = lines[1].split(',')
+      cacti_data = lines[-1].split(',')
 
-    self.standby_leakage_per_bank_mW = float(cacti_data[11])
-    self.access_time_ns              = float(cacti_data[5])
-    self.cycle_time_ns               = float(cacti_data[6])
-    self.dynamic_read_power_mW       = float(cacti_data[10])
-    self.aspect_ratio                = float(cacti_data[31])
-    self.area_um2                    = float(cacti_data[12])*1e6
-    self.fo4_ps                      = float(cacti_data[30])
-    self.cap_input_pf                = float(cacti_data[32])
-    self.width_um                    = math.sqrt( self.area_um2 * self.aspect_ratio )
-    self.height_um                   = math.sqrt( self.area_um2 / self.aspect_ratio )
+    self.tech_node_nm                = int(cacti_data[0])
+    self.capacity_bytes              = int(cacti_data[1])
+    self.associativity               = int(cacti_data[2])
+    self.output_width_bits           = int(cacti_data[3])
+    self.access_time_ns              = float(cacti_data[4])
+    self.cycle_time_ns               = float(cacti_data[5])
+    #self.dyn_search_energy_nj        = float(cacti_data[6])
+    self.dyn_read_energy_nj          = float(cacti_data[7])
+    self.dyn_write_energy_nj         = float(cacti_data[8])
+    self.standby_leakage_per_bank_mW = float(cacti_data[9])
+    self.area_mm2                    = float(cacti_data[10])
+    self.fo4_ps                      = float(cacti_data[11])
+    self.width_um                    = float(cacti_data[12])
+    self.height_um                   = float(cacti_data[13])
 
+    self.cap_input_pf = 5
+
+    self.tech_node_um = self.tech_node_nm / 1000.0
+
+    # Adjust to snap
     self.width_um = (math.ceil((self.width_um*1000.0)/self.process.snapWidth_nm)*self.process.snapWidth_nm)/1000.0
     self.height_um = (math.ceil((self.height_um*1000.0)/self.process.snapHeight_nm)*self.process.snapHeight_nm)/1000.0
     self.area_um2 = self.width_um * self.height_um
@@ -64,9 +74,9 @@ class Memory:
   # configuration file.
   def __run_cacti( self ):
     fid = open(os.sep.join([self.results_dir,'cacti.cfg']), 'w')
-    fid.write( '\n'.join(cacti_config).format( self.total_size
+    fid.write( cacti_config.format( self.total_size
              , self.width_in_bytes, self.rw_ports, 0, 0
-             , self.process.tech_um, self.width_in_bits, self.num_banks ))
+             , self.process.tech_um, self.width_in_bytes*8, self.num_banks ))
     fid.close()
     odir = os.getcwd()
     os.chdir(self.cacti_dir )
