@@ -1,91 +1,157 @@
-From f1e565d753d4a85bbaab4fe7a7f14f6ac5971e13 Mon Sep 17 00:00:00 2001
+From abc9269c85f9c88a006f9726e9f82b010a775878 Mon Sep 17 00:00:00 2001
 From: Scott Davidson <scottdavidson1992@gmail.com>
-Date: Tue, 30 Jul 2019 21:33:35 -0700
-Subject: [PATCH] Cacti Patch
+Date: Tue, 7 Apr 2020 15:22:41 -0700
+Subject: [PATCH] Cacti patch
 
 ---
- io.cc | 33 +++++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
+ io.cc | 94 +++++++++++++++++++++++++++++++++++--------------------------------
+ 1 file changed, 49 insertions(+), 45 deletions(-)
 
 diff --git a/io.cc b/io.cc
-index 3a798aa..c4ad5ea 100644
+index 3a798aa..3489d95 100644
 --- a/io.cc
 +++ b/io.cc
-@@ -2566,7 +2566,7 @@ void output_data_csv(const uca_org_t & fin_res, string fn)
-       file << "Dynamic write energy (nJ), ";
- //      file << "Tag Dynamic read energy (nJ), ";
- //      file << "Data Dynamic read energy (nJ), ";
--//      file << "Dynamic read power (mW), ";
-+      file << "Dynamic read power (mW), ";
-       file << "Standby leakage per bank(mW), ";
+@@ -2547,7 +2547,7 @@ void output_data_csv(const uca_org_t & fin_res, string fn)
+     {
+       file << "Tech node (nm), ";
+       file << "Capacity (bytes), ";
+-      file << "Number of banks, ";
++      //file << "Number of banks, ";
+       file << "Associativity, ";
+       file << "Output width (bits), ";
+       file << "Access time (ns), ";
+@@ -2572,25 +2572,25 @@ void output_data_csv(const uca_org_t & fin_res, string fn)
  //      file << "Leakage per bank with leak power management (mW), ";
- //      file << "Leakage per bank with leak power management (mW), ";
-@@ -2587,10 +2587,10 @@ void output_data_csv(const uca_org_t & fin_res, string fn)
-       file << "Ntsam_level_2, ";
-       file << "Tag arrary area efficiency %, ";
+ //      file << "Refresh power as percentage of standby leakage, ";
+       file << "Area (mm2), ";
+-      file << "Ndwl, ";
+-      file << "Ndbl, ";
+-      file << "Nspd, ";
+-      file << "Ndcm, ";
+-      file << "Ndsam_level_1, ";
+-      file << "Ndsam_level_2, ";
+-      file << "Data arrary area efficiency %, ";
+-      file << "Ntwl, ";
+-      file << "Ntbl, ";
+-      file << "Ntspd, ";
+-      file << "Ntcm, ";
+-      file << "Ntsam_level_1, ";
+-      file << "Ntsam_level_2, ";
+-      file << "Tag arrary area efficiency %, ";
++      //file << "Ndwl, ";
++      //file << "Ndbl, ";
++      //file << "Nspd, ";
++      //file << "Ndcm, ";
++      //file << "Ndsam_level_1, ";
++      //file << "Ndsam_level_2, ";
++      //file << "Data arrary area efficiency %, ";
++      //file << "Ntwl, ";
++      //file << "Ntbl, ";
++      //file << "Ntspd, ";
++      //file << "Ntcm, ";
++      //file << "Ntsam_level_1, ";
++      //file << "Ntsam_level_2, ";
++      //file << "Tag arrary area efficiency %, ";
  
--//      file << "Resistance per unit micron (ohm-micron), ";
--//      file << "Capacitance per unit micron (fF per micron), ";
--//      file << "Unit-length wire delay (ps), ";
+ //      file << "Resistance per unit micron (ohm-micron), ";
+ //      file << "Capacitance per unit micron (fF per micron), ";
+ //      file << "Unit-length wire delay (ps), ";
 -//      file << "FO4 delay (ps), ";
-+      file << "Resistance per unit micron (ohm-micron), ";
-+      file << "Capacitance per unit micron (fF per micron), ";
-+      file << "Unit-length wire delay (ps), ";
 +      file << "FO4 delay (ps), ";
  //      file << "delay route to bank (including crossb delay) (ps), ";
  //      file << "Crossbar delay (ps), ";
  //      file << "Dyn read energy per access from closed page (nJ), ";
-@@ -2613,7 +2613,8 @@ void output_data_csv(const uca_org_t & fin_res, string fn)
- //      file << "Area opt (perc), ";
+@@ -2614,11 +2614,13 @@ void output_data_csv(const uca_org_t & fin_res, string fn)
  //      file << "Delay opt (perc), ";
  //      file << "Repeater opt (perc), ";
--//      file << "Aspect ratio";
-+      file << "Aspect ratio, ";
-+      file << "Min Driver Input Cap (pF), ";
+ //      file << "Aspect ratio";
++      file << "Width (um), ";
++      file << "Height (um), ";
        file << endl;
      }
      file << g_ip->F_sz_nm << ", ";
-@@ -2657,7 +2658,7 @@ void output_data_csv(const uca_org_t & fin_res, string fn)
- //        {
- //        		file << "NA" << ", ";
- //        }
--//    file << fin_res.data_array2->power.readOp.dynamic*1e+9 << ", ";
-+    file << fin_res.data_array2->power.readOp.dynamic*1e+9 << ", ";
- //    if (g_ip->fully_assoc || g_ip->pure_cam)
- //        {
- //    	    file << fin_res.power.searchOp.dynamic*1000/fin_res.cycle_time << ", ";
-@@ -2700,10 +2701,10 @@ void output_data_csv(const uca_org_t & fin_res, string fn)
-     	file << "N/A" << ", ";
-     }
+     file << g_ip->cache_sz << ", ";
+-    file << g_ip->nbanks << ", ";
++    //file << g_ip->nbanks << ", ";
+     file << g_ip->tag_assoc << ", ";
+     file << g_ip->out_w << ", ";
+     file << fin_res.access_time*1e+9 << ", ";
+@@ -2672,38 +2674,38 @@ void output_data_csv(const uca_org_t & fin_res, string fn)
+ //    file << fin_res.data_array.refresh_power / fin_res.data_array.total_power.readOp.leakage << ", ";
+     file << fin_res.area*1e-6 << ", ";
  
--//    file << g_tp.wire_inside_mat.R_per_um << ", ";
--//    file << g_tp.wire_inside_mat.C_per_um / 1e-15 << ", ";
--//    file << g_tp.unit_len_wire_del / 1e-12 << ", ";
+-    file << fin_res.data_array2->Ndwl << ", ";
+-    file << fin_res.data_array2->Ndbl << ", ";
+-    file << fin_res.data_array2->Nspd << ", ";
+-    file << fin_res.data_array2->deg_bl_muxing << ", ";
+-    file << fin_res.data_array2->Ndsam_lev_1 << ", ";
+-    file << fin_res.data_array2->Ndsam_lev_2 << ", ";
+-    file << fin_res.data_array2->area_efficiency << ", ";
+-    if (!(g_ip->fully_assoc || g_ip->pure_cam || g_ip->pure_ram))
+-    {
+-    file << fin_res.tag_array2->Ndwl << ", ";
+-    file << fin_res.tag_array2->Ndbl << ", ";
+-    file << fin_res.tag_array2->Nspd << ", ";
+-    file << fin_res.tag_array2->deg_bl_muxing << ", ";
+-    file << fin_res.tag_array2->Ndsam_lev_1 << ", ";
+-    file << fin_res.tag_array2->Ndsam_lev_2 << ", ";
+-    file << fin_res.tag_array2->area_efficiency << ", ";
+-    }
+-    else
+-    {
+-    	file << "N/A" << ", ";
+-    	file << "N/A"<< ", ";
+-    	file << "N/A" << ", ";
+-    	file << "N/A" << ", ";
+-    	file << "N/A" << ", ";
+-    	file << "N/A" << ", ";
+-    	file << "N/A" << ", ";
+-    }
++    //file << fin_res.data_array2->Ndwl << ", ";
++    //file << fin_res.data_array2->Ndbl << ", ";
++    //file << fin_res.data_array2->Nspd << ", ";
++    //file << fin_res.data_array2->deg_bl_muxing << ", ";
++    //file << fin_res.data_array2->Ndsam_lev_1 << ", ";
++    //file << fin_res.data_array2->Ndsam_lev_2 << ", ";
++    //file << fin_res.data_array2->area_efficiency << ", ";
++    //if (!(g_ip->fully_assoc || g_ip->pure_cam || g_ip->pure_ram))
++    //{
++    //file << fin_res.tag_array2->Ndwl << ", ";
++    //file << fin_res.tag_array2->Ndbl << ", ";
++    //file << fin_res.tag_array2->Nspd << ", ";
++    //file << fin_res.tag_array2->deg_bl_muxing << ", ";
++    //file << fin_res.tag_array2->Ndsam_lev_1 << ", ";
++    //file << fin_res.tag_array2->Ndsam_lev_2 << ", ";
++    //file << fin_res.tag_array2->area_efficiency << ", ";
++    //}
++    //else
++    //{
++    //	file << "N/A" << ", ";
++    //	file << "N/A"<< ", ";
++    //	file << "N/A" << ", ";
++    //	file << "N/A" << ", ";
++    //	file << "N/A" << ", ";
++    //	file << "N/A" << ", ";
++    //	file << "N/A" << ", ";
++    //}
+ 
+ //    file << g_tp.wire_inside_mat.R_per_um << ", ";
+ //    file << g_tp.wire_inside_mat.C_per_um / 1e-15 << ", ";
+ //    file << g_tp.unit_len_wire_del / 1e-12 << ", ";
 -//    file << g_tp.FO4 / 1e-12 << ", ";
-+    file << g_tp.wire_inside_mat.R_per_um << ", ";
-+    file << g_tp.wire_inside_mat.C_per_um / 1e-15 << ", ";
-+    file << g_tp.unit_len_wire_del / 1e-12 << ", ";
 +    file << g_tp.FO4 / 1e-12 << ", ";
  //    file << fin_res.data_array.delay_route_to_bank / 1e-9 << ", ";
  //    file << fin_res.data_array.delay_crossbar / 1e-9 << ", ";
  //    file << fin_res.data_array.dyn_read_energy_from_closed_page / 1e-9 << ", ";
-@@ -2720,7 +2721,15 @@ void output_data_csv(const uca_org_t & fin_res, string fn)
- //    file << fin_res.data_array.trcd * 1e9 << ", " ;
+@@ -2721,6 +2723,8 @@ void output_data_csv(const uca_org_t & fin_res, string fn)
  //    file << fin_res.data_array.cas_latency * 1e9 << ", " ;
  //    file << fin_res.data_array.precharge_delay * 1e9 << ", " ;
--//    file << fin_res.data_array.all_banks_height / fin_res.data_array.all_banks_width;
-+    file << fin_res.data_array.all_banks_height / fin_res.data_array.all_banks_width << ", " ;
-+
-+    //double min_w_pmos = 1.0;
-+    DeviceType *dt = new DeviceType;
-+    double min_w_pmos = dt->n_to_p_eff_curr_drv_ratio*g_tp.min_w_nmos_;
-+    double input_cap = gate_C(g_tp.min_w_nmos_ + min_w_pmos, 0);
-+    delete dt;
-+    file << input_cap*1e12 << ", " ;
-+
+ //    file << fin_res.data_array.all_banks_height / fin_res.data_array.all_banks_width;
++    file << fin_res.cache_len << ", ";
++    file << fin_res.cache_ht << ", ";
      file<<endl;
    }
    file.close();
 -- 
-1.8.3.1
+2.16.6
 
