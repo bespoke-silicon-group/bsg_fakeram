@@ -56,7 +56,7 @@ class Memory:
     self.width_um                    = float(cacti_data[12])
     self.height_um                   = float(cacti_data[13])
 
-    self.cap_input_pf = 5
+    self.cap_input_pf = 0.005
 
     self.tech_node_um = self.tech_node_nm / 1000.0
 
@@ -65,9 +65,11 @@ class Memory:
     self.height_um = (math.ceil((self.height_um*1000.0)/self.process.snapHeight_nm)*self.process.snapHeight_nm)/1000.0
     self.area_um2 = self.width_um * self.height_um
 
-    self.pin_dynamic_power_mW        = (0.5 * self.cap_input_pf * (float(self.process.voltage)**2))*1e9 ;# P = 0.5*CV^2
-    self.t_setup_ns                  = self.access_time_ns ;# access time is clk to Q, assume that data to "reg" is about the same.
-    self.t_hold_ns                   = 0
+    #self.pin_dynamic_power_mW = (0.5 * self.cap_input_pf * (float(self.process.voltage)**2))*1e9 ;# P = 0.5*CV^2
+    self.pin_dynamic_power_mW = self.dyn_write_energy_nj
+
+    self.t_setup_ns = 0.050  ;# arbitrary 50ps setup
+    self.t_hold_ns  = 0.050  ;# arbitrary 50ps hold
 
   # __run_cacti: shell out to cacti to generate a csv file with more data
   # regarding this memory based on the input parameters from the json
