@@ -36,7 +36,7 @@ cacti_config = '''# cacti.cfg
 -Tag array cell type - "itrs-lop"
 -Tag array peripheral type - "itrs-hp"
 -operating temperature (K) 300
--cache type "cache"
+-cache type "{8}"
 -tag size (b) "default"
 -access mode (normal, sequential, fast) - "normal"
 -design objective (weight delay, dynamic power, leakage power, cycle time, area) 0:0:0:100:0
