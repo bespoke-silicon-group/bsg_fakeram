@@ -24,6 +24,7 @@ $(CACTI_BUILD_DIR):
 	git clone https://github.com/HewlettPackard/Cacti.git $@
 	cd $@; git checkout 1ffd8dfb10303d306ecd8d215320aea07651e878
 	cd $@; git apply $(TOP_DIR)/patches/cacti.patch
+	sh $(TOP_DIR)/patches/nmlimitremoval_patch.sh
 	cd $@; make -j4
 
 clean_tools:
