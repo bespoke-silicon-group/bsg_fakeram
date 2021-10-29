@@ -84,6 +84,53 @@ All of the generated files can be found in the `./results` directory. Inside
 this directory will be a directory for each SRAM which contains the .lef, .lib
 and v file (as well as some intermediate files used for Cacti).
 
+### Comparison with standard SRAMs generated with OpenRAM compiler
+
+#### Generated Fakerams (Eg:- fakeram130_1024x8)
+
+<img src="https://user-images.githubusercontent.com/58559090/139503688-22503f55-b565-4e00-8f3e-af25aa50d3b1.png" width="800">
+
+<img src="https://user-images.githubusercontent.com/58559090/139502208-a40dcf33-c30b-47dd-beac-113207f35e05.png" width="800">
+
+- The generated fakerams are 1rw RAMs 
+- All pins are on the left side and they are all on Metal 3.
+- Pins:
+  - 1x chip enable 
+  - 1x write enable
+  - 1x clock 
+  - 1x address-in port
+  - 1x data-in port
+  - 1x data-out port
+  - 1x write-mask-in port (bit masked).
+
+<img src="https://user-images.githubusercontent.com/58559090/139502369-01549fd1-8d94-4e55-b851-41b9fb2a2815.png" width="800">
+
+- Power rails are vertical (can be made horizontal in the config file) - Alternate VDD and GND rails.
+- Metal layers 1, 2, 3 and 4 are blocked, metal 5 is free for routing over.
+
+#### Standard SRAMs compiled with OpenRAM (Eg:- [sky130_sram_1kbyte_1rw1r_8x1024_8](https://github.com/efabless/sky130_sram_macros/tree/main/sky130_sram_1kbyte_1rw1r_8x1024_8))
+
+<img src="https://user-images.githubusercontent.com/58559090/139504168-2f357ce5-c00c-4235-8a0f-b16ff3a4425d.png" width="600">
+
+<img src="https://user-images.githubusercontent.com/58559090/139504399-a4189986-c9ad-4260-8fc4-dece4f172a54.png" width="600">
+
+- 1rw1r RAMs
+- Pins cover all 4 sides
+- I/O pins use Metal 3 (on left and right sides) & Metal 4 (on top and bottom sides)
+- Pins:
+  - 2x clock 
+  - 2x chip select
+  - 1x write enable
+  - 2x address-in port
+  - 1x data-out port
+  - 1x data-in data-out port
+  - 1x write-mask pin/port (byte masked)
+
+- Power pins are in a ring format along the macro edge utilizing Metal 3 (Horizontal) & Metal 4 (Vertical)
+- Metal layers 1, 2, 3 and 4 are blocked, metal 5 is free for routing over.
+
+
+
 ## Feedback
 
 Feedback is always welcome! We ask that you submit a GitHub issue for any bugs,
