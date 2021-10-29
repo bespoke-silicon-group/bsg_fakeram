@@ -99,8 +99,7 @@ and v file (as well as some intermediate files used for Cacti).
   - 1x write enable
   - 1x clock 
   - 1x address-in port
-  - 1x data-in port
-  - 1x data-out port
+  - 1x data-in-data-out port
   - 1x write-mask-in port (bit masked).
 
 <img src="https://user-images.githubusercontent.com/58559090/139502369-01549fd1-8d94-4e55-b851-41b9fb2a2815.png" width="800">
@@ -123,7 +122,7 @@ and v file (as well as some intermediate files used for Cacti).
   - 1x write enable
   - 2x address-in port
   - 1x data-out port
-  - 1x data-in data-out port
+  - 1x data-in-data-out port
   - 1x write-mask pin/port (byte masked)
 
 - Power pins are in a ring format along the macro edge utilizing Metal 3 (Horizontal) & Metal 4 (Vertical)
