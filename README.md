@@ -84,6 +84,52 @@ All of the generated files can be found in the `./results` directory. Inside
 this directory will be a directory for each SRAM which contains the .lef, .lib
 and v file (as well as some intermediate files used for Cacti).
 
+### Comparison with standard SRAMs generated with OpenRAM compiler
+
+#### Generated Fakerams (Eg:- fakeram130_1024x8)
+
+![](docs/images/fakeram.png)
+
+![](docs/images/fakeram_io.png)
+
+- The generated fakerams are 1rw RAMs 
+- All pins are on the left side and they are all on Metal 3.
+- Pins:
+  - 1x chip enable 
+  - 1x write enable
+  - 1x clock 
+  - 1x address-in port
+  - 1x data-in-data-out port
+  - 1x write-mask-in port (bit masked).
+
+![](docs/images/fakeram_power.png)
+
+- Power rails are vertical (can be made horizontal in the config file) - Alternate VDD and GND rails.
+- Metal layers 1, 2, 3 and 4 are blocked, metal 5 is free for routing over.
+
+#### Standard SRAMs compiled with OpenRAM (Eg:- [sky130_sram_1kbyte_1rw1r_8x1024_8](https://github.com/efabless/sky130_sram_macros/tree/main/sky130_sram_1kbyte_1rw1r_8x1024_8))
+
+![](docs/images/openram.png)
+
+![](docs/images/openram_pins.png)
+
+- 1rw1r RAMs
+- Pins cover all 4 sides
+- I/O pins use Metal 3 (on left and right sides) & Metal 4 (on top and bottom sides)
+- Pins:
+  - 2x clock 
+  - 2x chip select
+  - 1x write enable
+  - 2x address-in port
+  - 1x data-out port
+  - 1x data-in-data-out port
+  - 1x write-mask pin/port (byte masked)
+
+- Power pins are in a ring format along the macro edge utilizing Metal 3 (Horizontal) & Metal 4 (Vertical)
+- Metal layers 1, 2, 3 and 4 are blocked, metal 5 is free for routing over.
+
+
+
 ## Feedback
 
 Feedback is always welcome! We ask that you submit a GitHub issue for any bugs,
