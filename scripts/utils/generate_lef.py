@@ -24,6 +24,7 @@ def generate_lef( mem ):
 
     # Process parameters
     min_pin_width   = mem.process.pinWidth_um
+    pin_height      = mem.process.pinHeight_um
     min_pin_pitch   = mem.process.pinPitch_um
     metalPrefix     = mem.process.metalPrefix
     flip            = mem.process.flipPins.lower() == 'true'
@@ -40,9 +41,11 @@ def generate_lef( mem ):
     number_of_tracks_available = math.floor((h - 2*y_offset) / min_pin_pitch)
     number_of_spare_tracks = number_of_tracks_available - number_of_pins
 
+    print(f'Final {name} size = {w} x {h}')
+    print(f'num pins: {number_of_pins}, available tracks: {number_of_tracks_available}')
     if number_of_spare_tracks < 0:
-        print("Error: not enough tracks (num pins: %d, available tracks: %d)." % (number_of_pins, number_of_tracks_available))
-        sys.exit(1)
+        print("ERROR: not enough tracks!")
+        sys.exit(1)        
 
     track_count = 1
     while number_of_spare_tracks > 0:
@@ -183,39 +186,39 @@ def generate_lef( mem ):
     if flip:
 
         # Rect from top to bottom, just right of pins to right edge
-        fid.write('    RECT %.3f 0 %.3f %.3f ;\n' % (min_pin_width,w,h))
+        fid.write('    RECT %.3f 0 %.3f %.3f ;\n' % (pin_height,w,h))
 
         # Walk through same calculation as pins and draw from bottom of the
         # current pin to the top of last pin (start with bottom edge)
         prev_y = 0
         y_step = y_offset
         for i in range(int(bits)) :
-            fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,min_pin_width,y_step-min_pin_width/2))
+            fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,pin_height,y_step-min_pin_width/2))
             prev_y = y_step+min_pin_width/2
             y_step += pin_pitch
         y_step += group_pitch-pin_pitch
         for i in range(int(bits)) :
-            fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,min_pin_width,y_step-min_pin_width/2))
+            fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,pin_height,y_step-min_pin_width/2))
             prev_y = y_step+min_pin_width/2
             y_step += pin_pitch
         y_step += group_pitch-pin_pitch
         for i in range(int(bits)) :
-            fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,min_pin_width,y_step-min_pin_width/2))
+            fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,pin_height,y_step-min_pin_width/2))
             prev_y = y_step+min_pin_width/2
             y_step += pin_pitch
         y_step += group_pitch-pin_pitch
         for i in range(int(addr_width)) :
-            fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,min_pin_width,y_step-min_pin_width/2))
+            fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,pin_height,y_step-min_pin_width/2))
             prev_y = y_step+min_pin_width/2
             y_step += pin_pitch
         y_step += group_pitch-pin_pitch
         for i in range(3):
-            fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,min_pin_width,y_step-min_pin_width/2))
+            fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,pin_height,y_step-min_pin_width/2))
             prev_y = y_step+min_pin_width/2
             y_step += pin_pitch
 
         # Final shapre from top of last pin to top edge
-        fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,min_pin_width,h))
+        fid.write('    RECT 0 %.3f %.3f %.3f ;\n' % (prev_y,pin_height,h))
 
     # Not flipped therefore no pins on M3 (Full rect)
     else:
@@ -318,7 +321,8 @@ def lef_add_pin( fid, mem, pin_name, is_input, y, pitch ):
 
   layer = mem.process.metalPrefix + ('3' if mem.process.flipPins.lower() == 'true' else '4')
   pw  = mem.process.pinWidth_um
-  hpw = (mem.process.pinWidth_um/2.0) ;# half pin width
+  hpw = (mem.process.pinWidth_um/2.0) # half pin width
+  ph = mem.process.pinHeight_um 
 
   fid.write('  PIN %s\n' % pin_name)
   fid.write('    DIRECTION %s ;\n' % ('INPUT' if is_input else 'OUTPUT'))
@@ -326,7 +330,7 @@ def lef_add_pin( fid, mem, pin_name, is_input, y, pitch ):
   fid.write('    SHAPE ABUTMENT ;\n')
   fid.write('    PORT\n')
   fid.write('      LAYER %s ;\n' % layer)
-  fid.write('      RECT %.3f %.3f %.3f %.3f ;\n' % (0, y-hpw, pw, y+hpw))
+  fid.write('      RECT %.3f %.3f %.3f %.3f ;\n' % (0, y-hpw, ph, y+hpw))
   fid.write('    END\n')
   fid.write('  END %s\n' % pin_name)
   
