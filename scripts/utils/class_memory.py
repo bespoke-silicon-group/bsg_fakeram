@@ -61,6 +61,7 @@ class Memory:
 
     self.tech_node_um = self.tech_node_nm / 1000.0
 
+    print(f'Original {self.name} size = {self.width_um} x {self.height_um}')
     # Adjust to snap
     self.width_um = (math.ceil((self.width_um*1000.0)/self.process.snapWidth_nm)*self.process.snapWidth_nm)/1000.0
     self.height_um = (math.ceil((self.height_um*1000.0)/self.process.snapHeight_nm)*self.process.snapHeight_nm)/1000.0

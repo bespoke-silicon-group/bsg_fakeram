@@ -22,9 +22,11 @@ class Process:
     self.snapWidth_nm   = int(json_data['snapWidth_nm']) if 'snapWidth_nm' in json_data else 1
     self.snapHeight_nm  = int(json_data['snapHeight_nm']) if 'snapHeight_nm' in json_data else 1
     self.flipPins       = str(json_data['flipPins']) if 'flipPins' in json_data else 'false'
+    self.pinHeight_nm   = int(json_data['pinHeight_nm']) if 'pinHeight_nm' in json_data else (self.pinWidth_nm) # Default to square pins
 
     # Converted values
     self.tech_um     = self.tech_nm / 1000.0
     self.pinWidth_um = self.pinWidth_nm / 1000.0
+    self.pinHeight_um = self.pinHeight_nm / 1000.0
     self.pinPitch_um = self.pinPitch_nm / 1000.0
 
