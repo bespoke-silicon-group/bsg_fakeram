@@ -4,14 +4,16 @@ export CACTI_BUILD_DIR := $(TOP_DIR)/tools/cacti
 
 CONFIG := $(TOP_DIR)/example_cfgs/freepdk45.cfg
 
+OUT_DIR := $(TOP_DIR)/results
+
 run:
-	./scripts/run.py $(CONFIG)
+	./scripts/run.py $(CONFIG) --output_dir $(OUT_DIR)
 
 view.%:
-	klayout ./results/$*/$*.lef &
+	klayout ./$(OUT_DIR)/$*/$*.lef &
 
 clean:
-	rm -rf ./results
+	rm -rf ./$(OUT_DIR)
 
 #=======================================
 # TOOLS
