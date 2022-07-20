@@ -23,6 +23,7 @@ class Process:
     self.snapHeight_nm  = int(json_data['snapHeight_nm']) if 'snapHeight_nm' in json_data else 1
     self.flipPins       = str(json_data['flipPins']) if 'flipPins' in json_data else 'false'
     self.pinHeight_nm   = int(json_data['pinHeight_nm']) if 'pinHeight_nm' in json_data else (self.pinWidth_nm) # Default to square pins
+    self.vlogTimingCheckSignalExpansion = bool(json_data['vlogTimingCheckSignalExpansion']) if 'vlogTimingCheckSignalExpansion' in json_data else False
 
     # Converted values
     self.tech_um     = self.tech_nm / 1000.0
