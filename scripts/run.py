@@ -61,7 +61,7 @@ def main ( args : argparse.Namespace):
     memory = Memory(process, sram_data, args.output_dir, args.cacti_dir)
     generate_lib(memory)
     generate_lef(memory)
-    generate_verilog(memory)
+    generate_verilog(memory, tmChkExpand=process.vlogTimingCheckSignalExpansion)
     generate_verilog_bb(memory)
 
 ### Entry point
