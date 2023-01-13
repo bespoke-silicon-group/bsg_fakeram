@@ -14,6 +14,7 @@ def generate_verilog(mem, tmChkExpand=False):
   bits  = int(mem.width_in_bits)
   addr_width = math.ceil(math.log2(depth))
   crpt_on_x = 1
+  latch_last_read = int(mem.process.latch_last_read)
 
   # Generate the 'setuphold' timing checks
   setuphold_checks  = SH_LINE.format(sig='       we_in')
@@ -30,7 +31,7 @@ def generate_verilog(mem, tmChkExpand=False):
   fout = os.sep.join([mem.results_dir, name + '.v'])
   with open(fout, 'w') as f:
     f.write(VLOG_TEMPLATE.format(name=name, data_width=bits, depth=depth, addr_width=addr_width, 
-      crpt_on_x=crpt_on_x, setuphold_checks=setuphold_checks))
+      crpt_on_x=crpt_on_x, latch_last_read=latch_last_read, setuphold_checks=setuphold_checks))
 
 def generate_verilog_bb( mem ):
   '''Generate a verilog black-box view for the RAM'''
@@ -64,6 +65,7 @@ module {name}
    parameter WORD_DEPTH = {depth};
    parameter ADDR_WIDTH = {addr_width};
    parameter corrupt_mem_on_X_p = {crpt_on_x};
+   parameter latch_last_read_p  = {latch_last_read};
 
    output reg [BITS-1:0]    rd_out;
    input  [ADDR_WIDTH-1:0]  addr_in;
@@ -101,7 +103,9 @@ module {name}
       else
       begin
          // Make sure read fails if ce_in is low
-         rd_out <= 'x;
+         if (latch_last_read_p == 0) begin
+            rd_out <= 'x;
+        end
       end
    end
 
