@@ -32,6 +32,7 @@ JSON file that can be found in `./example_cfgs/freepdk45.cfg`:
   "snapWidth_nm": 190,
   "snapHeight_nm": 1400,
   "flipPins": True,
+  "latch_last_read": 0,
   "srams": [
     {"name": "sram_32x32_1rw", "width": 32, "depth":  32, "banks": 1},
     {"name": "sram_8x512_1rw", "width":  8, "depth": 512, "banks": 1}
@@ -63,6 +64,9 @@ assumed to be vertical. This means that signal pins will be on metal 4 and the
 supply straps (also on metal 4) will be horizontal. If set to true then metal 1
 is assumed to be horizontal. This means that signal pins will be on metal 3 and
 the supply straps (on metal 4) will be vertical.
+
+`latch_last_read` - (Optional : 0) In the simulation model, if set to 1, then the output data will
+latch and remain unchanged when chip-enable is deasserted.
 
 `srams` - A list of SRAMs to generate. Each sram should have a `name`, `width`
 (or the number of bits per word), `depth` (or number of words), and `banks`.
